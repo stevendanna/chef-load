@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/naoina/toml"
+	"os"
 )
 
 type chefLoadConfig struct {
 	ChefServerUrl     string
 	ClientName        string
 	ClientKey         string
+	OhaiData          string
 	Nodes             int
 	NodeNamePrefix    string
 	Interval          int
@@ -49,6 +49,11 @@ client_key = "/path/to/CLIENT_NAME.pem"
 
 # Number of nodes making chef-client runs
 # nodes = 10
+
+# Example ohai data to use when updating nodes at the end of the
+# chef-client run. If not provided, a nearly-empty node object will
+# be posted.
+# ohai_data = "/path/to/node_data.json"
 
 # This prefix will go at the beginning of each node name.
 # This enables running multiple instances of the chef-load tool without affecting each others' nodes
@@ -96,7 +101,7 @@ client_key = "/path/to/CLIENT_NAME.pem"
 # "https://chef.example.com/organizations/orgname/search/node?q=*%253A*&sort=X_CHEF_id_CHEF_X%20asc&start=0"
 # or
 # "search/node?q=*%253A*&sort=X_CHEF_id_CHEF_X%20asc&start=0"
-# 
+#
 # api_get_requests = [ ]
 
 # sleep_duration happens between the chef-client getting its cookbooks and it making the final API requests

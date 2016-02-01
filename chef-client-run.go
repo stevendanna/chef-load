@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func chefClientRun(nodeClient chef.Client, nodeName string, runList []string, getCookbooks bool, apiGetRequests []string, sleepDuration int) {
+func chefClientRun(nodeClient chef.Client, nodeName string, runList []string, ohai_data map[string]interface{}, getCookbooks bool, apiGetRequests []string, sleepDuration int) {
 	node, err := nodeClient.Nodes.Get(nodeName)
 	if err != nil {
 		statusCode := getStatusCode(err)
@@ -77,6 +77,10 @@ func chefClientRun(nodeClient chef.Client, nodeName string, runList []string, ge
 
 	time.Sleep(time.Duration(sleepDuration) * time.Second)
 
+	// Populate node with ohai data
+	if ohai_data != nil {
+		node.AutomaticAttributes = ohai_data
+	}
 	// Ensure that what we post at the end of the run is different from previous runs
 	node.AutomaticAttributes["ohai_time"] = time.Now().Unix()
 

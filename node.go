@@ -7,7 +7,7 @@ import (
 	"github.com/go-chef/chef"
 )
 
-func startNode(nodeName string, config chefLoadConfig) {
+func startNode(nodeName string, config chefLoadConfig, data map[string]interface{}) {
 	adminClient := getApiClient(config.ClientName, config.ClientKey, config.ChefServerUrl)
 
 	adminClient.Clients.Delete(nodeName)
@@ -19,17 +19,17 @@ func startNode(nodeName string, config chefLoadConfig) {
 	switch config.Runs {
 	case 0:
 		for run := 1; true; run++ {
-			manageChefClientRun(nodeName, config, nodeClient, run)
+			manageChefClientRun(nodeName, config, nodeClient, data, run)
 		}
 	default:
 		for run := 1; run <= config.Runs; run++ {
-			manageChefClientRun(nodeName, config, nodeClient, run)
+			manageChefClientRun(nodeName, config, nodeClient, data, run)
 		}
 	}
 	quit <- 1
 }
 
-func manageChefClientRun(nodeName string, config chefLoadConfig, nodeClient chef.Client, run int) {
+func manageChefClientRun(nodeName string, config chefLoadConfig, nodeClient chef.Client, data map[string]interface{}, run int) {
 	fmt.Println(nodeName, "Started")
 	var getCookbooks bool
 	switch config.DownloadCookbooks {
@@ -46,7 +46,7 @@ func manageChefClientRun(nodeName string, config chefLoadConfig, nodeClient chef
 	default:
 		getCookbooks = true
 	}
-	chefClientRun(nodeClient, nodeName, config.RunList, getCookbooks, config.ApiGetRequests, config.SleepDuration)
+	chefClientRun(nodeClient, nodeName, config.RunList, data, getCookbooks, config.ApiGetRequests, config.SleepDuration)
 	fmt.Println(nodeName, "Finished")
 	if config.Runs == 0 || (config.Runs > 1 && run < config.Runs) {
 		fmt.Printf("%v Sleeping %v seconds\n", nodeName, config.Interval)

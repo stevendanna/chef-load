@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -69,12 +70,40 @@ func main() {
 	}
 	f.Close()
 
+	var data map[string]interface{}
+	if config.OhaiData == "" {
+		fmt.Fprintf(os.Stderr, "No ohai data provide, nearly empty node objects will be used!\n")
+	} else {
+		data, err = read_ohai_data(config.OhaiData)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(1)
+		}
+	}
+
 	numNodes := config.Nodes
 	for i := 0; i < numNodes; i++ {
 		nodeName := config.NodeNamePrefix + "-" + strconv.Itoa(i)
-		go startNode(nodeName, *config)
+		go startNode(nodeName, *config, data)
 	}
 	for i := 0; i < numNodes; i++ {
 		<-quit // Wait to be told to exit.
 	}
+}
+
+func read_ohai_data(path string) (map[string]interface{}, error) {
+	var data map[string]interface{}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("could not open specified ohai data (%v): %v", path, err)
+	}
+	defer f.Close()
+
+	parser := json.NewDecoder(f)
+	err = parser.Decode(&data)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse ohai data (%v):%v", path, err)
+	}
+	return data, nil
 }
